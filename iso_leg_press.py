@@ -65,7 +65,7 @@ def process_text_files(uploaded_files):
 
 # Streamlit app
 def main():
-    st.title("Text File Processor")
+    st.title("Iso Leg Press File Processor")
     st.write("Upload multiple text files to extract the data and calculate resultant forces.")
 
     # Upload multiple text files
