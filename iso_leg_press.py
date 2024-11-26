@@ -24,40 +24,32 @@ def process_text_files(uploaded_files):
         # Read the content of the file
         for line in uploaded_file.getvalue().decode("utf-8").splitlines():
             # Check if the line contains the date
-            if "Date" in line and not file_date:
+            if "Date" in line:
                 # Extract the full date and time (e.g., "Sep 25, 2024 17:29:18")
                 file_date = line.split()[1:4]  # Capturing Month, Day, and Year
                 file_date = " ".join(file_date)  # Joining them into a single string
 
             if start_line:
-                line_array = re.split(r'\t+', line.strip())
-                if len(line_array) >= 4:
-                    try:
-                        fx = float(line_array[1])  # Attempt to convert to float
-                        fz = float(line_array[3])  # Attempt to convert to float
-                        calc_force = math.sqrt(fx ** 2 + fz ** 2)
-                        calc_force = round(calc_force, 1)  # Round the resultant force to 1 decimal place
-                        if calc_force > max_force:
-                            max_force = calc_force
-                    except ValueError:
-                        # Skip lines where conversion to float fails
-                        continue
+            line_array = re.split(r'\t+', line.strip())
+            if len(line_array) >= 4:
+                try:
+                    fx = float(line_array[1])  # Attempt to convert to float
+                    fz = float(line_array[3])  # Attempt to convert to float
+                    calc_force = math.sqrt(fx ** 2 + fz ** 2)
+                    calc_force = round(calc_force, 1)  # Round the resultant force to 1 decimal place
+                    if calc_force > max_force:
+                        max_force = calc_force
+                except ValueError:
+                    # Skip lines where conversion to float fails
+                    continue
 
             if "abs time" in line:
                 start_line = True
 
-        # If no date was found in the file content, extract it from the filename
-        if not file_date:
-            try:
-                # Extract the part after the last underscore and before .txt
-                date_part = file_name.split("_")[-1].replace(".txt", "")
-                day, month, year = date_part.split(".")
-                if len(year) == 2:  # If year is 2 digits, add '20' prefix
-                    year = f"20{year}"
-                file_date = f"{day} {month} {year}"  # Format as day month year
-            except Exception as e:
-                st.error(f"Error processing date from filename: {file_name}, {str(e)}")
-                continue
+        # Strip time if it's present (e.g., "Sep 25, 2024 17:29:18" -> "Sep 25, 2024")
+        if file_date and " " in file_date:
+            file_date = file_date.split()[0:3]  # Take only the first 3 elements (Month Day, Year)
+            file_date = " ".join(file_date)  # Re-join them into a single string
 
         # Add the result row to the list
         rows.append({
@@ -71,7 +63,7 @@ def process_text_files(uploaded_files):
     results = pd.concat([results, pd.DataFrame(rows)], ignore_index=True)
 
     # Convert the Date column to dd/mm/yyyy format
-    results['Date'] = pd.to_datetime(results['Date'], format="%d %m %Y").dt.strftime('%d/%m/%Y')
+    results['Date'] = pd.to_datetime(results['Date'], format="%b %d, %Y").dt.strftime('%d/%m/%Y')
     
     return results
 
