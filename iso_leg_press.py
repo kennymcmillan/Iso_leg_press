@@ -32,12 +32,16 @@ def process_text_files(uploaded_files):
             if start_line:
                 line_array = re.split(r'\t+', line.strip())
                 if len(line_array) >= 4:
-                    fx = float(line_array[1])
-                    fz = float(line_array[3])
-                    calc_force = math.sqrt(fx ** 2 + fz ** 2)
-                    calc_force = round(calc_force, 1)  # Round the resultant force to 1 decimal place
-                    if calc_force > max_force:
-                        max_force = calc_force
+                    try:
+                        fx = float(line_array[1])  # Attempt to convert to float
+                        fz = float(line_array[3])  # Attempt to convert to float
+                        calc_force = math.sqrt(fx ** 2 + fz ** 2)
+                        calc_force = round(calc_force, 1)  # Round the resultant force to 1 decimal place
+                        if calc_force > max_force:
+                            max_force = calc_force
+                    except ValueError:
+                        # Skip lines where conversion to float fails
+                        continue
 
             if "abs time" in line:
                 start_line = True
